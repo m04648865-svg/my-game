@@ -5,23 +5,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Full Road Packed</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#00ff88">
 <style>
-body{margin:0;background:#000;color:white;text-align:center;font-family:Arial;overflow:hidden;touch-action:none}
-#topBar{width:100%;max-width:420px;margin:0 auto;background:#000;color:#00ffcc;font-size:11px;padding:6px 2px;display:flex;justify-content:space-around;border-bottom:1px solid #ff0066}
-#gameArea{width:360px;height:540px;margin:0 auto;position:relative;overflow:hidden;background:#1e2f45;border-left:10px solid; border-right:10px solid; border-image:linear-gradient(#ff0066,orange,yellow) 1}
-#installBtn{position:absolute;top:35px;right:10px;z-index:999;background:#00ff88;color:black;border:none;padding:8px 14px;border-radius:20px;font-weight:bold;display:none}
-#controls{width:360px;margin:8px auto;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-#controls button{padding:16px 5px;background:#222;color:white;border:2px solid #00ffcc;border-radius:12px;font-weight:bold;font-size:13px}
-#controls button:active{background:#00ffcc;color:black}
+body{margin:0;background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;display:flex;justify-content:center;align-items:center;height:100vh}
+canvas{display:block;border:4px solid #ff0000;box-shadow:0 0 20px #f00}
+#menu, #levelBox{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#000,#330000);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10;overflow-y:auto;padding:10px 0}
+#levelBox{display:none;background:rgba(0,0,0,0.96);z-index:20}
+#menu h1{font-size:26px;color:#ff0000;margin:5px;text-align:center}
+.city-btn{border:2px solid #333;background:#222;color:#fff;padding:6px;margin:3px;border-radius:6px;cursor:pointer;width:125px;font-size:11px}
+.city-btn.active{border-color:#f00;background:#000;box-shadow:0 0 8px #f00}
+#topBar{position:absolute;top:4px;left:50%;transform:translateX(-50%);background:#000;padding:5px 10px;border-radius:20px;border:2px solid #f00;display:flex;gap:6px;font-weight:bold;font-size:10px;z-index:5;white-space:nowrap}
+.car-dot{width:30px;height:45px;border-radius:5px;border:2px solid transparent;cursor:pointer;display:inline-block;margin:1px}
+.car-dot.active{border-color:#0f0;box-shadow:0 0 8px #0f0}
+.btn{padding:10px 24px;margin:5px;font-size:14px;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
+.btn-start{background:#ff0000;color:#fff}
+.btn-next{background:#ffcc00;color:#000;font-size:18px;padding:14px 35px}
+#menuLevelBox{background:#111;border:2px solid #ffcc00;padding:10px 20px;border-radius:10px;margin:10px;text-align:center}
+input{padding:8px;width:90px;text-align:center;border-radius:6px;border:2px solid #f00;background:#111;color:#fff;font-size:16px}
+/* 4 BUTTONS - NEW */
+#controls{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;width:360px;z-index:100}
+#controls button{padding:18px 5px;background:#222;color:white;border:2px solid #00ffcc;border-radius:12px;font-weight:bold;font-size:12px}
+#controls button:active{background:#00ffcc;color:#000}
 </style>
 </head>
 <body>
-<div id="topBar"><span id="batTop">BAT:99%</span><span id="hitTop">HITS:0/3</span><span id="scoreTop">SCORE:0</span><span id="levelTop">LVL:1</span><span id="cityTop">LAHORE</span></div>
-<div id="gameArea">
-<button id="installBtn">📥 DOWNLOAD</button>
-<canvas id="gameCanvas" width="360" height="540" style="width:100%;height:100%"></canvas>
+<div id="topBar">
+<span style="color:#0f0" id="batTop">BAT:100%</span>
+<span style="color:#f55" id="hitTop">HITS:0/3</span>
+<span id="scoreTop">SCORE:0/5000</span>
+<span style="color:#ff0" id="levelTop">LVL:1/2000</span>
+<span id="cityTop" style="color:#0ff">LAHORE</span>
 </div>
+
+<div id="menu">
+<h1>FULL ROAD PACKED!</h1>
+<p style="color:#ff7777;font-size:10px;margin:0">Har Jagah Car - Centre Bhi Full!</p>
+<div id="menuLevelBox">
+<div style="color:#ffcc00;font-size:18px;font-weight:bold" id="menuLevelShow">LEVEL: 1 / 2000</div>
+<div style="color:#aaa;font-size:10px;margin-top:4px">5000 Score = Next Level</div>
+<div style="margin-top:8px">
+Level Select: <input type="number" id="roundInput" min="1" max="2000" value="1" oninput="updateMenuLevel()">
+<button onclick="setLevel(500)" style="padding:4px 8px;font-size:10px">500</button>
+<button onclick="setLevel(1000)" style="padding:4px 8px;font-size:10px">1000</button>
+</div>
+</div>
+<div id="carSelect"></div>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;max-width:500px" id="cityGrid"></div>
+<button class="btn btn-start" onclick="startGame()">START GAME</button>
+</div>
+
+<div id="levelBox">
+<h1 id="levelTitle" style="color:#f00">LEVEL COMPLETE!</h1>
+<p id="cityComplete" style="color:#0ff;font-size:14px"></p>
+<p id="levelShowBig" style="color:#ff0;font-size:32px;font-weight:bold;margin:10px">LEVEL 1 -> 2</p>
+<p id="levelMsg" style="color:#fff;font-size:14px">5000 Score Done! Permission?</p>
+<button class="btn btn-next" onclick="nextLevel()">YES, NEXT LEVEL</button>
+</div>
+
+<canvas id="c" width="700" height="750"></canvas>
+
+<!-- 4 BUTTONS ADDED -->
 <div id="controls">
 <button id="leftBtn">◀ LEFT</button>
 <button id="rightBtn">RIGHT ▶</button>
@@ -30,28 +72,119 @@ body{margin:0;background:#000;color:white;text-align:center;font-family:Arial;ov
 </div>
 
 <script>
-// ---- Aapka purana game logic same rahega ----
-let canvas=document.getElementById('gameCanvas'),ctx=canvas.getContext('2d');
-let player={x:160,y:450,w:26,h:46},keys={},battery=99,hits=0,maxHits=3,score=0,targetScore=2000,selectedRound=1,selectedCity={name:'LAHORE'},boost={x:100,y:-500},cities=[{name:'LAHORE'}];
-function loop(){requestAnimationFrame(loop);ctx.clearRect(0,0,360,540);ctx.fillStyle='#00ff33';ctx.fillRect(player.x,player.y,player.w,player.h);}
-// Controls for 4 buttons
-document.getElementById('leftBtn').addEventListener('touchstart',()=>{player.x-=25;if(player.x<5)player.x=5;});
-document.getElementById('rightBtn').addEventListener('touchstart',()=>{player.x+=25;if(player.x>330)player.x=330;});
-document.getElementById('brakeBtn').addEventListener('touchstart',()=>{battery+=0.5});
-document.getElementById('boostBtn').addEventListener('touchstart',()=>{player.y-=20;setTimeout(()=>player.y=450,200);});
-document.getElementById('leftBtn').addEventListener('click',()=>{player.x-=25});
-document.getElementById('rightBtn').addEventListener('click',()=>{player.x+=25});
-window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key.toLowerCase()==='b'&&battery>5){player.y-=30}});
-window.addEventListener('keyup',e=>keys[e.key]=false);
-loop();
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
 
-// ---- DOWNLOAD / INSTALL LOGIC ----
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;document.getElementById('installBtn').style.display='block';});
-document.getElementById('installBtn').addEventListener('click',async()=>{
-if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installBtn').style.display='none';}
-else{alert('Mobile ke browser menu (3 dots) > Add to Home Screen / Install App pe click karo');}
-});
+let carList=[{col:'#e11d48'},{col:'#0ea5e9'},{col:'#facc15'},{col:'#ffffff'},{col:'#ff8c00'},{col:'#00ff00'}];
+let cities=[
+ {name:'LAHORE', bg:'#0a2a0a', side1:'#8B4513', side2:'#ffcc00'},
+ {name:'KARACHI', bg:'#001a33', side1:'#005588', side2:'#00aaff'},
+ {name:'ISLAMABAD', bg:'#0a2a1a', side1:'#228B22', side2:'#90EE90'},
+ {name:'DUBAI', bg:'#4d3319', side1:'#DEB887', side2:'#f4a460'},
+ {name:'TOKYO', bg:'#1a0033', side1:'#ff00ff', side2:'#00ffff'},
+ {name:'MURREE', bg:'#cce6ff', side1:'#ffffff', side2:'#aaddff'},
+ {name:'THAR', bg:'#cc9966', side1:'#8B7355', side2:'#ffcc88'},
+ {name:'CYBER', bg:'#000011', side1:'#ff00ff', side2:'#00ffff'}
+];
+let selectedCar=0, selectedRound=1, selectedCity=0, targetScore=5000, score=0, speed=8, hits=0, maxHits=3, battery=100;
+let player={x:326,y:600,w:48,h:90}, traffic=[], boost={x:200,y:-800,w:26,h:26}, keys={}, gameStarted=false;
+
+function updateMenuLevel(){
+ let v=parseInt(document.getElementById('roundInput').value)||1;
+ if(v<1)v=1; if(v>2000)v=2000;
+ document.getElementById('menuLevelShow').innerText='LEVEL: '+v+' / 2000';
+ selectedRound=v;
+}
+function setLevel(v){ document.getElementById('roundInput').value=v; updateMenuLevel(); }
+
+const carSelectDiv=document.getElementById('carSelect');
+carList.forEach((c,i)=>{let d=document.createElement('div');d.className='car-dot'+(i==0?' active':'');d.style.background=c.col;d.onclick=()=>{selectedCar=i;document.querySelectorAll('.car-dot').forEach(x=>x.classList.remove('active'));d.classList.add('active');};carSelectDiv.appendChild(d);});
+const cityGrid=document.getElementById('cityGrid');
+cities.forEach((ct,i)=>{let b=document.createElement('button');b.className='city-btn'+(i==0?' active':'');b.innerText=ct.name;b.onclick=()=>{selectedCity=i;document.querySelectorAll('.city-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');};cityGrid.appendChild(b);});
+
+function drawRealCar(x,y,w,h,col,isPlayer){
+ ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(x+4,y+4,w,h);
+ ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
+ ctx.fillStyle='#111'; ctx.fillRect(x+5,y+15,w-10,30);
+ ctx.fillStyle='#7dd3ff'; ctx.fillRect(x+7,y+18,w-14,9);
+ ctx.fillStyle=isPlayer?'#ffeb3b':'#ff2222'; ctx.fillRect(x+4,y+h-7,10,5); ctx.fillRect(x+w-14,y+h-7,10,5);
+ ctx.fillStyle='#000'; ctx.fillRect(x-3,y+10,5,12); ctx.fillRect(x+w-2,y+10,5,12);
+}
+
+function drawCityRoad(id){
+ let city=cities[id];
+ ctx.fillStyle=city.bg; ctx.fillRect(0,0,700,750);
+ ctx.fillStyle=city.side1; ctx.fillRect(0,0,50,750); ctx.fillRect(650,0,50,750);
+ ctx.fillStyle='#222'; ctx.fillRect(50,0,600,750);
+ ctx.fillStyle=city.side2; ctx.fillRect(50,0,6,750); ctx.fillRect(644,0,6,750);
+ ctx.fillStyle='#fff'; for(let i=0;i<750;i+=45){ ctx.fillRect(346,i+(score*6)%45,8,28); }
+ ctx.fillStyle='rgba(255,255,255,0.2)'; for(let i=0;i<750;i+=45){ ctx.fillRect(185,i+(score*6)%45,2,10); ctx.fillRect(515,i+(score*6)%45,2,10); }
+ ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.font='bold 20px Arial'; ctx.save(); ctx.translate(25,375); ctx.rotate(-Math.PI/2); ctx.fillText(city.name,0,0); ctx.restore();
+ ctx.save(); ctx.translate(675,375); ctx.rotate(Math.PI/2); ctx.fillText(city.name,0,0); ctx.restore();
+}
+
+function startGame(){ selectedRound=parseInt(document.getElementById('roundInput').value)||1; speed=8+(selectedRound*0.1); document.getElementById('menu').style.display='none'; gameStarted=true; loop(); }
+function nextLevel(){ document.getElementById('levelBox').style.display='none'; selectedRound++; selectedCity=(selectedCity+1)%cities.length; score=0; battery=100; hits=0; speed+=0.6; traffic=[]; gameStarted=true; loop(); }
+function showLevelPermission(){ 
+ gameStarted=false; 
+ document.getElementById('levelTitle').innerText='LEVEL '+selectedRound+' COMPLETE!'; 
+ document.getElementById('cityComplete').innerText=cities[selectedCity].name+' -> Next: '+cities[(selectedCity+1)%cities.length].name; 
+ document.getElementById('levelShowBig').innerText='LEVEL '+selectedRound+' -> '+(selectedRound+1);
+ document.getElementById('levelBox').style.display='flex'; 
+}
+
+function loop(){
+ if(!gameStarted) return;
+ drawCityRoad(selectedCity);
+ ctx.fillStyle='#00ff66'; ctx.beginPath(); ctx.arc(boost.x+13,boost.y+13,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.font='bold 12px Arial'; ctx.fillText('⚡',boost.x+6,boost.y+17);
+ boost.y+=speed+4; if(boost.y>800){boost.y=-800;boost.x=60+Math.random()*500;}
+ if(traffic.length < 9 && Math.random() < 0.12){
+  let lanes=[75, 195, 326, 445, 570];
+  let lane = lanes[Math.floor(Math.random()*5)];
+  let canSpawn=true;
+  for(let c of traffic){ if(Math.abs(c.x-lane)<42 && c.y<320) canSpawn=false; }
+  if(canSpawn){ traffic.push({x:lane, y:-140, w:48, h:88, col:carList[Math.floor(Math.random()*carList.length)].col}); }
+ }
+ for(let car of traffic){ car.y+=speed; drawRealCar(car.x,car.y,car.w,car.h,car.col,false); }
+ traffic=traffic.filter(c=>c.y<850);
+ if(keys['ArrowLeft'] && player.x>58) player.x-=10;
+ if(keys['ArrowRight'] && player.x<594) player.x+=10;
+ drawRealCar(player.x,player.y,player.w,player.h,carList[selectedCar].col,true);
+ for(let car of traffic){
+  if(player.x < car.x+car.w && player.x+player.w > car.x && player.y < car.y+car.h && player.y+player.h > car.y){
+   hits++; battery-=30; car.y=900;
+   if(hits>=maxHits){ alert('GAME OVER! Level:'+selectedRound); location.reload(); return; }
+  }
+ }
+ if(player.x < boost.x+24 && player.x+48 > boost.x && player.y < boost.y+24 && player.y+88 > boost.y){ battery+=20; if(battery>100)battery=100; boost.y=-800; if(hits>0)hits--; }
+ battery-=0.022; if(battery<0){ alert('BATTERY OVER!'); location.reload(); return; }
+ document.getElementById('batTop').innerText='BAT:'+battery.toFixed(0)+'%';
+ document.getElementById('hitTop').innerText='HITS:'+hits+'/'+maxHits;
+ document.getElementById('scoreTop').innerText='SCORE:'+score+'/'+targetScore;
+ document.getElementById('levelTop').innerText='LVL:'+selectedRound+'/2000';
+ document.getElementById('cityTop').innerText=cities[selectedCity].name;
+ score++;
+ if(score>=targetScore){ if(selectedRound>=2000){alert('WIN 2000!');location.reload();return;} showLevelPermission(); return; }
+ requestAnimationFrame(loop);
+}
+window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key.toLowerCase()=='b'&&gameStarted){selectedCity=(selectedCity+1)%cities.length;}});
+window.addEventListener('keyup',e=>keys[e.key]=false);
+
+// 4 BUTTONS LOGIC - NEW
+document.getElementById('leftBtn').addEventListener('touchstart',()=>keys['ArrowLeft']=true);
+document.getElementById('leftBtn').addEventListener('touchend',()=>keys['ArrowLeft']=false);
+document.getElementById('rightBtn').addEventListener('touchstart',()=>keys['ArrowRight']=true);
+document.getElementById('rightBtn').addEventListener('touchend',()=>keys['ArrowRight']=false);
+document.getElementById('brakeBtn').addEventListener('touchstart',()=>{speed=3});
+document.getElementById('brakeBtn').addEventListener('touchend',()=>{speed=8+(selectedRound*0.1)});
+document.getElementById('boostBtn').addEventListener('touchstart',()=>{speed=15; battery-=1});
+document.getElementById('boostBtn').addEventListener('touchend',()=>{speed=8+(selectedRound*0.1)});
+document.getElementById('leftBtn').addEventListener('click',()=>{player.x-=40; if(player.x<58)player.x=58});
+document.getElementById('rightBtn').addEventListener('click',()=>{player.x+=40; if(player.x>594)player.x=594});
+document.getElementById('brakeBtn').addEventListener('click',()=>{speed=3; setTimeout(()=>speed=8+(selectedRound*0.1),300)});
+document.getElementById('boostBtn').addEventListener('click',()=>{speed=15; setTimeout(()=>speed=8+(selectedRound*0.1),400)});
+
+updateMenuLevel();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}
 </script>
 </body>
