@@ -2,46 +2,68 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Full Road Packed</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#e60000">
+<meta name="theme-color" content="#ff0000">
 <style>
-body{margin:0;background:#111;color:white;text-align:center;font-family:Arial;overflow:hidden}
-#road{width:320px;height:520px;background:#2b2b2b;margin:10px auto;position:relative;overflow:hidden;border-left:6px solid white;border-right:6px solid white}
-#car{width:50px;height:90px;background:#ff0000;position:absolute;bottom:20px;left:135px;border-radius:12px 12px 4px 4px;border:2px solid #fff;box-shadow:0 0 8px yellow}
-#car::before{content:"";width:36px;height:22px;background:#87CEEB;position:absolute;top:12px;left:7px;border-radius:4px;border:1px solid white}
-#car::after{content:"●   ●";position:absolute;bottom:2px;left:6px;font-size:10px;letter-spacing:8px}
-.lane{position:absolute;width:10px;height:40px;background:white;left:155px;animation:move 1s linear infinite}
-@keyframes move{0%{top:-50px}100%{top:600px}}
-button{padding:14px 24px;margin:8px;background:red;color:white;border:none;border-radius:12px;font-size:16px;font-weight:bold}
+body{margin:0;background:#0f0f0f;color:white;text-align:center;font-family:Arial;overflow:hidden;touch-action:none}
+#road{width:340px;height:600px;background:linear-gradient(#222,#2b2b2b);margin:5px auto;position:relative;overflow:hidden;border-left:8px solid #fff;border-right:8px solid #fff;box-shadow:0 0 20px #000}
+#car{width:58px;height:115px;position:absolute;bottom:25px;left:141px;z-index:10;transition:left 0.1s linear;
+background-image:url('https://cdn-icons-png.flaticon.com/512/3774/3774087.png');
+background-size:100% 100%;background-repeat:no-repeat;
+filter:drop-shadow(0 0 6px gold);transform:rotate(0deg)}
+.enemy{width:55px;height:110px;position:absolute;background-size:100% 100%;z-index:5}
+.lane-line{position:absolute;width:10px;height:50px;background:#fff;left:165px;opacity:0.8}
+h3{margin:8px;color:gold;text-shadow:0 0 5px red}
+button{padding:16px 30px;margin:8px;background:linear-gradient(red,#a00);color:white;border:2px solid gold;border-radius:15px;font-size:18px;font-weight:bold;box-shadow:0 4px 10px #000}
+#score{font-size:20px;font-weight:bold;color:#0f0}
 </style>
 </head>
 <body>
 <h3>🏁 Full Road Packed 🏁</h3>
+<div id="score">Score: 0</div>
 <div id="road">
 <div id="car"></div>
 </div>
-<button onclick="moveLeft()">⬅️ LEFT</button>
-<button onclick="moveRight()">RIGHT ➡️</button>
-
+<button onclick="moveLeft()">⬅️</button>
+<button onclick="moveRight()">➡️</button>
 <script>
 let car=document.getElementById("car");
-let pos=135;
-function moveLeft(){if(pos>15)pos-=25;car.style.left=pos+"px";}
-function moveRight(){if(pos<255)pos+=25;car.style.left=pos+"px";}
-
-// Road lines
 let road=document.getElementById("road");
-setInterval(()=>{
-let l=document.createElement("div");
-l.className="lane";
-l.style.left=Math.random()>0.5?"70px":"230px";
-road.appendChild(l);
-setTimeout(()=>l.remove(),1000);
-},200);
+let pos=141;
+let score=0;
+function moveLeft(){if(pos>15)pos-=30;car.style.left=pos+"px";}
+function moveRight(){if(pos<265)pos+=30;car.style.left=pos+"px";}
+document.addEventListener('keydown',e=>{if(e.key=='ArrowLeft')moveLeft();if(e.key=='ArrowRight')moveRight();});
+// Touch swipe
+let startX=0;road.addEventListener('touchstart',e=>startX=e.touches[0].clientX);
+road.addEventListener('touchend',e=>{let diff=e.changedTouches[0].clientX-startX;if(diff<-30)moveLeft();if(diff>30)moveRight();});
 
-// PWA
+// Enemy cars - real looking
+const enemyCars=["https://cdn-icons-png.flaticon.com/512/3774/3774087.png","https://cdn-icons-png.flaticon.com/512/3774/3774143.png"];
+setInterval(()=>{
+let en=document.createElement("div");
+en.className="enemy";
+en.style.left=[20,100,180,260][Math.floor(Math.random()*4)]+"px";
+en.style.top="-120px";
+en.style.backgroundImage=`url(${enemyCars[Math.floor(Math.random()*2)]})`;
+en.style.filter="hue-rotate("+(Math.random()*360)+"deg)";
+road.appendChild(en);
+let move=setInterval(()=>{en.style.top=(parseInt(en.style.top)+6)+"px";if(parseInt(en.style.top)>650){clearInterval(move);en.remove();score++;document.getElementById("score").innerText="Score: "+score;}
+// collision
+let carRect=car.getBoundingClientRect();let enRect=en.getBoundingClientRect();
+let roadRect=road.getBoundingClientRect();
+if(!(enRect.bottom<carRect.top||enRect.top>carRect.bottom||enRect.right<carRect.left||enRect.left>carRect.right)){alert("Game Over! Score: "+score);location.reload();}
+},20);
+},900);
+
+// Road lines animation
+setInterval(()=>{
+let l=document.createElement("div");l.className="lane-line";l.style.top="-60px";l.style.left=Math.random()>0.5?"80px":"250px";road.appendChild(l);
+let m=setInterval(()=>{l.style.top=(parseInt(l.style.top||-60)+8)+"px";if(parseInt(l.style.top)>650){clearInterval(m);l.remove();}},20);
+},150);
+
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}
 </script>
 </body>
