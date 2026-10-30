@@ -2,51 +2,70 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Full Road Packed</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ff0000">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-body{margin:0;background:#000;color:#fff;font-family:Arial;overflow:hidden;display:flex;justify-content:center;align-items:center;height:100vh;touch-action:none}
-canvas{display:block;border:4px solid #f00}
-#menu,#levelBox{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#000,#330000);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10}
-#levelBox{display:none;background:rgba(0,0,0,0.96);z-index:20}
-.city-btn{border:2px solid #333;background:#222;color:#fff;padding:6px;margin:3px;border-radius:6px;width:125px}
-.city-btn.active{border-color:#f00;background:#000}
-.car-dot{width:30px;height:45px;border-radius:5px;border:2px solid transparent;display:inline-block;margin:1px}
-.car-dot.active{border-color:#0f0}
-.btn{padding:10px 24px;margin:5px;font-size:14px;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
-.btn-start{background:#f00;color:#fff} .btn-download{background:#00c853;color:#fff}
-#menuLevelBox{background:#111;border:2px solid #ffcc00;padding:10px 20px;border-radius:10px;margin:10px}
-#controls{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:6;display:none}
-#dpad{position:relative;width:140px;height:140px;background:rgba(0,0,0,0.6);border-radius:20px;border:2px solid #f00}
-.dbtn{position:absolute;width:50px;height:42px;border:none;border-radius:12px;font-weight:bold;color:#fff;font-size:12px}
-#upBtn{top:5px;left:45px;background:#2196F3} #downBtn{bottom:5px;left:45px;background:#FF9800}
-#leftBtn{top:49px;left:5px;background:#009688} #rightBtn{top:49px;right:5px;background:#009688}
+body{margin:0;background:#111;color:white;text-align:center;font-family:Arial;overflow:hidden}
+#gameBox{position:relative;width:360px;height:650px;margin:0 auto}
+#road{width:100%;height:100%;background:#2a2a2a;position:relative;overflow:hidden;border-left:6px solid white;border-right:6px solid white}
+#playerCar{width:60px;height:120px;position:absolute;bottom:20px;left:150px;z-index:20;
+background:url('https://cdn-icons-png.flaticon.com/512/3774/3774087.png') no-repeat center;
+background-size:100% 100%;filter:drop-shadow(0 0 8px yellow) brightness(1.2);
+border-radius:15px 15px 5px 5px}
+.enemy{width:58px;height:115px;position:absolute;background-size:100% 100%;z-index:10;border-radius:12px}
+.centerLine{position:absolute;width:10px;height:40px;background:white;left:175px;opacity:0.9}
+/* Buttons ko ek side pe */
+#controls{position:absolute;right:5px;bottom:20px;z-index:100;display:flex;flex-direction:column;gap:6px}
+#controls button{width:65px;height:45px;border:none;border-radius:12px;color:white;font-weight:bold;font-size:13px;box-shadow:0 3px 6px #000}
+#aage{background:#2196F3} #leftBtn{background:#009688} #rightBtn{background:#009688} #peeche{background:#FF9800}
+#topScore{padding:5px;background:red;color:white;font-weight:bold}
 </style>
 </head>
 <body>
-<div id="menu"><h1 style="color:#f00">FULL ROAD PACKED!</h1><div id="menuLevelBox"><div style="color:#ffcc00" id="menuLevelShow">LEVEL: 1 / 2000</div>Level: <input type="number" id="roundInput" value="1"></div><div id="carSelect"></div><div style="display:flex;flex-wrap:wrap;justify-content:center;max-width:500px" id="cityGrid"></div><button class="btn btn-start" onclick="startGame()">START GAME</button><button class="btn btn-download" onclick="downloadGame()">📥 DOWNLOAD GAME</button><button id="installBtn" class="btn" style="background:#2196F3;color:#fff;display:none;margin-top:10px">📲 APP INSTALL KARO</button></div>
-<div id="levelBox"><h1 style="color:#f00">LEVEL COMPLETE!</h1><button class="btn btn-start" onclick="nextLevel()">NEXT LEVEL</button></div>
-<canvas id="c" width="700" height="750"></canvas>
-<div id="controls"><div id="dpad"><button id="upBtn" class="dbtn">▲ Aage</button><button id="leftBtn" class="dbtn">◀ Left</button><button id="rightBtn" class="dbtn">Right ▶</button><button id="downBtn" class="dbtn">▼ Peeche</button></div></div>
+<div id="topScore">Score: <span id="score">0</span></div>
+<div id="gameBox">
+<div id="road">
+<div id="playerCar"></div>
+</div>
+<!-- Buttons ek side pe -->
+<div id="controls">
+<button id="aage">▲<br>Aage</button>
+<div style="display:flex;gap:6px"><button id="leftBtn">◀ Left</button><button id="rightBtn">Right ▶</button></div>
+<button id="peeche">▼<br>Peeche</button>
+</div>
+</div>
 <script>
-const canvas=document.getElementById('c');const ctx=canvas.getContext('2d');let carList=[{col:'#e11d48'},{col:'#0ea5e9'},{col:'#facc15'},{col:'#ffffff'}];let cities=[{name:'LAHORE',bg:'#0a2a0a',side1:'#8B4513',side2:'#ffcc00'},{name:'KARACHI',bg:'#001a33',side1:'#005588',side2:'#00aaff'},{name:'ISLAMABAD',bg:'#0a2a1a',side1:'#228B22',side2:'#90EE90'},{name:'DUBAI',bg:'#4d3319',side1:'#DEB887',side2:'#f4a460'}];let selectedCar=0,selectedRound=1,selectedCity=0,score=0,speed=8,player={x:326,y:600,w:48,h:90},traffic=[],keys={},gameStarted=false;
-function updateMenuLevel(){selectedRound=parseInt(document.getElementById('roundInput').value)||1;document.getElementById('menuLevelShow').innerText='LEVEL: '+selectedRound+' / 2000';}
-const carSelectDiv=document.getElementById('carSelect');carList.forEach((c,i)=>{let d=document.createElement('div');d.className='car-dot'+(i==0?' active':'');d.style.background=c.col;d.onclick=()=>{selectedCar=i;document.querySelectorAll('.car-dot').forEach(x=>x.classList.remove('active'));d.classList.add('active');};carSelectDiv.appendChild(d);});
-const cityGrid=document.getElementById('cityGrid');cities.forEach((ct,i)=>{let b=document.createElement('button');b.className='city-btn'+(i==0?' active':'');b.innerText=ct.name;b.onclick=()=>{selectedCity=i;document.querySelectorAll('.city-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');};cityGrid.appendChild(b);});
-function drawRealCar(x,y,w,h,col){ctx.fillStyle=col;ctx.beginPath();ctx.roundRect(x,y,w,h,8);ctx.fill();}
-function drawCityRoad(id){let city=cities[id];ctx.fillStyle=city.bg;ctx.fillRect(0,0,700,750);ctx.fillStyle='#222';ctx.fillRect(50,0,600,750);ctx.fillStyle='#fff';for(let i=0;i<750;i+=45){ctx.fillRect(346,i+(score*6)%45,8,28);}}
-function startGame(){document.getElementById('menu').style.display='none';document.getElementById('controls').style.display='flex';gameStarted=true;loop();}
-function nextLevel(){document.getElementById('levelBox').style.display='none';selectedRound++;score=0;traffic=[];document.getElementById('controls').style.display='flex';gameStarted=true;loop();}
-function downloadGame(){const html=document.documentElement.outerHTML;const blob=new Blob([html],{type:'text/html'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='CarRacing.html';a.click();URL.revokeObjectURL(url);}
-function loop(){if(!gameStarted)return;drawCityRoad(selectedCity);if(traffic.length<9&&Math.random()<0.12){let lanes=[75,195,326,445,570];let lane=lanes[Math.floor(Math.random()*5)];traffic.push({x:lane,y:-140,w:48,h:88,col:carList[Math.floor(Math.random()*carList.length)].col});}
-for(let car of traffic){car.y+=speed;drawRealCar(car.x,car.y,car.w,car.h,car.col);}traffic=traffic.filter(c=>c.y<850);
-if(keys['left'])player.x=Math.max(58,player.x-10);if(keys['right'])player.x=Math.min(594,player.x+10);if(keys['up'])player.y=Math.max(50,player.y-10);if(keys['down'])player.y=Math.min(650,player.y+10);
-drawRealCar(player.x,player.y,player.w,player.h,carList[selectedCar].col);score++;if(score>=5000){document.getElementById('levelBox').style.display='flex';return;}requestAnimationFrame(loop);}
-function bindBtn(id,key){let b=document.getElementById(id);b.addEventListener('touchstart',e=>{e.preventDefault();keys[key]=true});b.addEventListener('touchend',e=>{e.preventDefault();keys[key]=false});}
-bindBtn('leftBtn','left');bindBtn('rightBtn','right');bindBtn('upBtn','up');bindBtn('downBtn','down');
-let deferredPrompt;const installBtn=document.getElementById('installBtn');window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;installBtn.style.display='block';});installBtn.addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();const r=await deferredPrompt.userChoice;if(r.outcome==='accepted')installBtn.style.display='none';deferredPrompt=null;}});updateMenuLevel();
+let car=document.getElementById("playerCar");
+let road=document.getElementById("road");
+let x=150,y=510;let score=0;
+function updateCar(){car.style.left=x+"px";car.style.top=y+"px";}
+document.getElementById("aage").onclick=()=>{if(y>10)y-=25;updateCar();}
+document.getElementById("peeche").onclick=()=>{if(y<530)y+=25;updateCar();}
+document.getElementById("leftBtn").onclick=()=>{if(x>10)x-=25;updateCar();}
+document.getElementById("rightBtn").onclick=()=>{if(x<280)x+=25;updateCar();}
+
+const enemyImgs=["https://cdn-icons-png.flaticon.com/512/3774/3774087.png","https://cdn-icons-png.flaticon.com/512/3774/3774143.png"];
+setInterval(()=>{
+let e=document.createElement("div");e.className="enemy";
+e.style.left=[10,100,190,280][Math.floor(Math.random()*4)]+"px";
+e.style.top="-130px";
+e.style.backgroundImage=`url(${enemyImgs[Math.floor(Math.random()*2)]})`;
+e.style.filter=`hue-rotate(${Math.random()*360}deg) brightness(0.9)`;
+road.appendChild(e);
+let mv=setInterval(()=>{
+e.style.top=(parseInt(e.style.top)+5)+"px";
+if(parseInt(e.style.top)>680){clearInterval(mv);e.remove();score++;document.getElementById("score").innerText=score;}
+let r1=car.getBoundingClientRect(),r2=e.getBoundingClientRect();
+if(!(r2.bottom<r1.top||r2.top>r1.bottom||r2.right<r1.left||r2.left>r1.right)){alert("Game Over! Score:"+score);location.reload();}
+},18);
+},1000);
+
+setInterval(()=>{
+let l=document.createElement("div");l.className="centerLine";l.style.top="-50px";road.appendChild(l);
+let m=setInterval(()=>{l.style.top=(parseInt(l.style.top)+6)+"px";if(parseInt(l.style.top)>700){clearInterval(m);l.remove();}},18);
+},120);
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}
 </script>
 </body>
 </html>
