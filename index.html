@@ -3,68 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Full Road Packed</title>
+<title>Lahore Racing</title>
 <link rel="manifest" href="manifest.json">
 <style>
-body{margin:0;background:#111;color:white;text-align:center;font-family:Arial;overflow:hidden}
-#gameBox{position:relative;width:360px;height:650px;margin:0 auto}
-#road{width:100%;height:100%;background:#2a2a2a;position:relative;overflow:hidden;border-left:6px solid white;border-right:6px solid white}
-#playerCar{width:60px;height:120px;position:absolute;bottom:20px;left:150px;z-index:20;
-background:url('https://cdn-icons-png.flaticon.com/512/3774/3774087.png') no-repeat center;
-background-size:100% 100%;filter:drop-shadow(0 0 8px yellow) brightness(1.2);
-border-radius:15px 15px 5px 5px}
-.enemy{width:58px;height:115px;position:absolute;background-size:100% 100%;z-index:10;border-radius:12px}
-.centerLine{position:absolute;width:10px;height:40px;background:white;left:175px;opacity:0.9}
-/* Buttons ko ek side pe */
-#controls{position:absolute;right:5px;bottom:20px;z-index:100;display:flex;flex-direction:column;gap:6px}
-#controls button{width:65px;height:45px;border:none;border-radius:12px;color:white;font-weight:bold;font-size:13px;box-shadow:0 3px 6px #000}
-#aage{background:#2196F3} #leftBtn{background:#009688} #rightBtn{background:#009688} #peeche{background:#FF9800}
-#topScore{padding:5px;background:red;color:white;font-weight:bold}
+body{margin:0;background:#000;color:white;text-align:center;font-family:Arial;overflow:hidden}
+#road{width:380px;height:600px;background:#1a2a3a;margin:0 auto;position:relative;overflow:hidden;
+border-left:12px solid; border-right:12px solid;
+border-image: linear-gradient(#ff0066,#ffcc00) 1;
+box-shadow:0 0 20px #000}
+.car{width:42px;height:68px;position:absolute;border-radius:8px 8px 4px 4px;display:flex;flex-direction:column;align-items:center;padding-top:8px;box-sizing:border-box;box-shadow:0 2px 8px #000}
+.car .win{width:70%;height:18px;border-radius:3px;margin-bottom:2px}
+#player{width:28px;height:48px;background:#00ff44;border-radius:50% 50% 20% 20%;bottom:30px;left:175px;z-index:20;box-shadow:0 0 15px #00ff44}
+#player .win{height:8px}
+.centerLine{position:absolute;width:8px;background:white;left:186px}
+.dashed{position:absolute;width:2px;height:15px;background:#555;opacity:0.6}
+#controls{position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:15px;z-index:100}
+#controls button{width:70px;height:50px;background:#222;color:white;border:2px solid #00ffcc;border-radius:12px;font-weight:bold}
+#topBar{width:380px;margin:0 auto;background:#000;color:#00ffcc;font-size:10px;padding:4px;display:flex;justify-content:space-around;border:1px solid #ff0066}
 </style>
 </head>
 <body>
-<div id="topScore">Score: <span id="score">0</span></div>
-<div id="gameBox">
+<div id="topBar"><span>BAT: 99% HTS:0%</span><span>SCORE:<span id="score">0</span></span><span>LVL:1/2000 LAHORE</span></div>
 <div id="road">
-<div id="playerCar"></div>
+<div id="player" class="car" style="position:absolute"><div class="win" style="background:#000"></div></div>
 </div>
-<!-- Buttons ek side pe -->
 <div id="controls">
-<button id="aage">▲<br>Aage</button>
-<div style="display:flex;gap:6px"><button id="leftBtn">◀ Left</button><button id="rightBtn">Right ▶</button></div>
-<button id="peeche">▼<br>Peeche</button>
-</div>
+<button onclick="move(-1)">◀ LEFT</button>
+<button onclick="move(1)">RIGHT ▶</button>
 </div>
 <script>
-let car=document.getElementById("playerCar");
+let player=document.getElementById("player");
 let road=document.getElementById("road");
-let x=150,y=510;let score=0;
-function updateCar(){car.style.left=x+"px";car.style.top=y+"px";}
-document.getElementById("aage").onclick=()=>{if(y>10)y-=25;updateCar();}
-document.getElementById("peeche").onclick=()=>{if(y<530)y+=25;updateCar();}
-document.getElementById("leftBtn").onclick=()=>{if(x>10)x-=25;updateCar();}
-document.getElementById("rightBtn").onclick=()=>{if(x<280)x+=25;updateCar();}
+let px=175,score=0;
+function move(dir){px+=dir*45;if(px<10)px=10;if(px>320)px=320;player.style.left=px+"px";}
 
-const enemyImgs=["https://cdn-icons-png.flaticon.com/512/3774/3774087.png","https://cdn-icons-png.flaticon.com/512/3774/3774143.png"];
-setInterval(()=>{
-let e=document.createElement("div");e.className="enemy";
-e.style.left=[10,100,190,280][Math.floor(Math.random()*4)]+"px";
-e.style.top="-130px";
-e.style.backgroundImage=`url(${enemyImgs[Math.floor(Math.random()*2)]})`;
-e.style.filter=`hue-rotate(${Math.random()*360}deg) brightness(0.9)`;
-road.appendChild(e);
-let mv=setInterval(()=>{
-e.style.top=(parseInt(e.style.top)+5)+"px";
-if(parseInt(e.style.top)>680){clearInterval(mv);e.remove();score++;document.getElementById("score").innerText=score;}
-let r1=car.getBoundingClientRect(),r2=e.getBoundingClientRect();
-if(!(r2.bottom<r1.top||r2.top>r1.bottom||r2.right<r1.left||r2.left>r1.right)){alert("Game Over! Score:"+score);location.reload();}
-},18);
-},1000);
+// colors like screenshot
+const colors=[
+{c:"#ffcc00",w:"#0099ff"},{c:"#00ffff",w:"#ffffff"},{c:"#ff69b4",w:"#000"},{c:"#ffffcc",w:"#ccc"},{c:"#ffcc00",w:"#0099ff"}
+];
 
+function createCar(){
+let d=document.createElement("div");d.className="car";
+let col=colors[Math.floor(Math.random()*colors.length)];
+d.style.background=col.c;
+d.style.left=[20,100,180,260][Math.floor(Math.random()*4)]+"px";
+d.style.top="-80px";
+d.innerHTML=`<div class="win" style="background:${col.w}"></div><div style="width:60%;height:4px;background:rgba(0,0,0,0.3);margin-top:20px"></div>`;
+road.appendChild(d);
+let id=setInterval(()=>{
+d.style.top=(parseInt(d.style.top)+4)+"px";
+if(parseInt(d.style.top)>650){clearInterval(id);d.remove();score+=10;document.getElementById("score").innerText=score;}
+let r1=player.getBoundingClientRect(),r2=d.getBoundingClientRect();
+if(!(r2.bottom<r1.top||r2.top>r1.bottom||r2.right<r1.left||r2.left>r1.right)){alert("CRASH! Score:"+score);location.reload();}
+},20);
+}
+setInterval(createCar,800);
+
+// center white line + dashed
 setInterval(()=>{
-let l=document.createElement("div");l.className="centerLine";l.style.top="-50px";road.appendChild(l);
-let m=setInterval(()=>{l.style.top=(parseInt(l.style.top)+6)+"px";if(parseInt(l.style.top)>700){clearInterval(m);l.remove();}},18);
-},120);
+let l=document.createElement("div");l.className="centerLine";l.style.height="35px";l.style.top="-40px";road.appendChild(l);
+let m=setInterval(()=>{l.style.top=(parseInt(l.style.top)+5)+"px";if(parseInt(l.style.top)>650){clearInterval(m);l.remove();}},20);
+},80);
+
+for(let i=0;i<3;i++){
+setInterval(()=>{
+let d=document.createElement("div");d.className="dashed";
+d.style.left=(i==0?95:i==1?186:280)+"px";d.style.top="-20px";road.appendChild(d);
+let mm=setInterval(()=>{d.style.top=(parseInt(d.style.top)+5)+"px";if(parseInt(d.style.top)>650){clearInterval(mm);d.remove();}},20);
+},100);
+}
+
 if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js')}
 </script>
 </body>
