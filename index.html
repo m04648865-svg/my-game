@@ -1,49 +1,176 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Car Racing 4D</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#111;display:flex;justify-content:center;align-items:center;min-height:100vh}
-#gameBox{position:relative;width:360px;height:600px;background:#2c2c2c;overflow:hidden;border:3px solid #fff}
-#playerCar{position:absolute;width:50px;height:80px;background:red;border-radius:10px;bottom:100px;left:155px;z-index:10;box-shadow:0 0 10px yellow}
-.enemy{position:absolute;width:50px;height:80px;border-radius:10px}
-#startScreen{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100}
-.btn{padding:14px 35px;font-size:20px;background:#00ff00;border:none;border-radius:10px;cursor:pointer;font-weight:bold}
-.ctrl{position:absolute;bottom:5px;width:100%;height:140px;z-index:50;display:flex;justify-content:center;align-items:center}
-.dpad{width:140px;height:140px;position:relative}
-.dBtn{position:absolute;width:45px;height:45px;background:rgba(255,255,255,0.4);border:2px solid white;border-radius:8px;color:white;display:flex;justify-content:center;align-items:center;font-size:20px;user-select:none}
-#up{top:0;left:47px} #down{bottom:0;left:47px} #left{top:47px;left:0} #right{top:47px;right:0}
+body{margin:0;background:#000;color:#fff;font-family:Arial,sans-serif;overflow:hidden;display:flex;justify-content:center;align-items:center;height:100vh;touch-action:none}
+canvas{display:block;border:4px solid #ff0000;box-shadow:0 0 20px #f00;max-width:100vw;max-height:100vh}
+#menu, #levelBox{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#000,#330000);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10;overflow-y:auto;padding:10px 0}
+#levelBox{display:none;background:rgba(0,0,0,0.96);z-index:20}
+#menu h1{font-size:26px;color:#ff0000;margin:5px;text-align:center}
+.city-btn{border:2px solid #333;background:#222;color:#fff;padding:6px;margin:3px;border-radius:6px;cursor:pointer;width:125px;font-size:11px}
+.city-btn.active{border-color:#f00;background:#000;box-shadow:0 0 8px #f00}
+#topBar{position:absolute;top:4px;left:50%;transform:translateX(-50%);background:#000;padding:5px 10px;border-radius:20px;border:2px solid #f00;display:flex;gap:6px;font-weight:bold;font-size:10px;z-index:5;white-space:nowrap}
+.car-dot{width:30px;height:45px;border-radius:5px;border:2px solid transparent;cursor:pointer;display:inline-block;margin:1px}
+.car-dot.active{border-color:#0f0;box-shadow:0 0 8px #0f0}
+.btn{padding:10px 24px;margin:5px;font-size:14px;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
+.btn-start{background:#ff0000;color:#fff}
+.btn-next{background:#ffcc00;color:#000;font-size:18px;padding:14px 35px}
+#menuLevelBox{background:#111;border:2px solid #ffcc00;padding:10px 20px;border-radius:10px;margin:10px;text-align:center}
+input{padding:8px;width:90px;text-align:center;border-radius:6px;border:2px solid #f00;background:#111;color:#fff;font-size:16px}
+#controls{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);z-index:6;display:none;align-items:center;gap:15px}
+#dpad{position:relative;width:140px;height:140px;background:rgba(0,0,0,0.6);border-radius:20px;border:2px solid #ff0000}
+.dbtn{position:absolute;width:50px;height:42px;border:none;border-radius:12px;font-weight:bold;color:#fff;cursor:pointer;font-size:13px;box-shadow:0 3px 0 rgba(0,0,0,0.5)}
+.dbtn:active{transform:translateY(2px)}
+#upBtn{top:5px;left:45px;background:#2196F3} #downBtn{bottom:5px;left:45px;background:#FF9800}
+#leftBtn{top:49px;left:5px;background:#009688} #rightBtn{top:49px;right:5px;background:#009688}
 </style>
 </head>
 <body>
-<div id="gameBox">
-<div id="playerCar"></div>
-<div id="score" style="position:absolute;top:10px;left:10px;color:white;z-index:20;font-size:18px">Score: 0</div>
-<div id="startScreen"><h1 style="color:white;margin-bottom:15px">Car Racing</h1><button class="btn" onclick="startGame()">START</button><p style="color:#ccc;margin-top:10px;font-size:13px;text-align:center">4 Buttons se Car Control<br>◀ ▶ ▲ ▼</p></div>
-<div class="ctrl"><div class="dpad"><div class="dBtn" id="up">▲</div><div class="dBtn" id="down">▼</div><div class="dBtn" id="left">◀</div><div class="dBtn" id="right">▶</div></div></div>
+<div id="topBar">
+<span style="color:#0f0" id="batTop">BAT:100%</span>
+<span style="color:#f55" id="hitTop">HITS:0/3</span>
+<span id="scoreTop">SCORE:0/5000</span>
+<span style="color:#ff0" id="levelTop">LVL:1/2000</span>
+<span id="cityTop" style="color:#0ff">LAHORE</span>
+</div>
+<div id="menu">
+<h1>FULL ROAD PACKED!</h1>
+<p style="color:#ff7777;font-size:10px;margin:0">Har Jagah Car - Centre Bhi Full!</p>
+<div id="menuLevelBox">
+<div style="color:#ffcc00;font-size:18px;font-weight:bold" id="menuLevelShow">LEVEL: 1 / 2000</div>
+<div style="color:#aaa;font-size:10px;margin-top:4px">5000 Score = Next Level</div>
+<div style="margin-top:8px">
+Level Select: <input type="number" id="roundInput" min="1" max="2000" value="1" oninput="updateMenuLevel()">
+<button onclick="setLevel(500)" style="padding:4px 8px;font-size:10px">500</button>
+<button onclick="setLevel(1000)" style="padding:4px 8px;font-size:10px">1000</button>
+</div>
+</div>
+<div id="carSelect"></div>
+<div style="display:flex;flex-wrap:wrap;justify-content:center;max-width:500px" id="cityGrid"></div>
+<button class="btn btn-start" onclick="startGame()">START GAME</button>
+</div>
+<div id="levelBox">
+<h1 id="levelTitle" style="color:#f00">LEVEL COMPLETE!</h1>
+<p id="cityComplete" style="color:#0ff;font-size:14px"></p>
+<p id="levelShowBig" style="color:#ff0;font-size:32px;font-weight:bold;margin:10px">LEVEL 1 -> 2</p>
+<p id="levelMsg" style="color:#fff;font-size:14px">5000 Score Done! Permission?</p>
+<button class="btn btn-next" onclick="nextLevel()">YES, NEXT LEVEL</button>
+</div>
+<canvas id="c" width="700" height="750"></canvas>
+<div id="controls">
+<div id="dpad">
+<button id="upBtn" class="dbtn">▲<br>Aage</button>
+<button id="leftBtn" class="dbtn">◀ Left</button>
+<button id="rightBtn" class="dbtn">Right ▶</button>
+<button id="downBtn" class="dbtn">▼<br>Peeche</button>
+</div>
 </div>
 <script>
-let gameRunning=false,px=155,py=400,score=0,enemies=[],speed=4;
-let car=document.getElementById('playerCar'),scoreEl=document.getElementById('score');
-function startGame(){document.getElementById('startScreen').style.display='none';gameRunning=true;px=155;py=400;score=0;enemies.forEach(e=>e.el.remove());enemies=[];loop();spawn();}
-let k={ArrowLeft:false,ArrowRight:false,ArrowUp:false,ArrowDown:false}
-document.addEventListener('keydown',e=>{if(e.key in k)k[e.key]=true})
-document.addEventListener('keyup',e=>{if(e.key in k)k[e.key]=false})
-let press={l:false,r:false,u:false,d:false}
-function bind(id,key){let el=document.getElementById(id);el.addEventListener('touchstart',e=>{e.preventDefault();press[key]=true});el.addEventListener('touchend',()=>press[key]=false);el.addEventListener('mousedown',()=>press[key]=true);el.addEventListener('mouseup',()=>press[key]=false);el.addEventListener('mouseleave',()=>press[key]=false);}
-bind('left','l');bind('right','r');bind('up','u');bind('down','d');
-function loop(){if(!gameRunning)return;
-if(k.ArrowLeft||press.l){px-=6} if(k.ArrowRight||press.r){px+=6}
-if(k.ArrowUp||press.u){py-=6} if(k.ArrowDown||press.d){py+=6}
-if(px<0)px=0;if(px>310)px=310;if(py<0)py=0;if(py>480)py=480;
-car.style.left=px+'px';car.style.top=py+'px';
-for(let i=enemies.length-1;i>=0;i--){let en=enemies[i];en.y+=speed;en.el.style.top=en.y+'px';if(en.y>620){en.el.remove();enemies.splice(i,1);score+=10;scoreEl.textContent='Score: '+score;continue;}if(en.y+80>py&&en.y<py+80&&Math.abs(en.x-px)<45){gameOver();return;}}
-requestAnimationFrame(loop);
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+let carList=[{col:'#e11d48'},{col:'#0ea5e9'},{col:'#facc15'},{col:'#ffffff'},{col:'#ff8c00'},{col:'#00ff00'}];
+let cities=[
+ {name:'LAHORE', bg:'#0a2a0a', side1:'#8B4513', side2:'#ffcc00'},
+ {name:'KARACHI', bg:'#001a33', side1:'#005588', side2:'#00aaff'},
+ {name:'ISLAMABAD', bg:'#0a2a1a', side1:'#228B22', side2:'#90EE90'},
+ {name:'DUBAI', bg:'#4d3319', side1:'#DEB887', side2:'#f4a460'},
+ {name:'TOKYO', bg:'#1a0033', side1:'#ff00ff', side2:'#00ffff'},
+ {name:'MURREE', bg:'#cce6ff', side1:'#ffffff', side2:'#aaddff'},
+ {name:'THAR', bg:'#cc9966', side1:'#8B7355', side2:'#ffcc88'},
+ {name:'CYBER', bg:'#000011', side1:'#ff00ff', side2:'#00ffff'}
+];
+let selectedCar=0, selectedRound=1, selectedCity=0, targetScore=5000, score=0, speed=8, hits=0, maxHits=3, battery=100;
+let player={x:326,y:600,w:48,h:90}, traffic=[], boost={x:200,y:-800,w:26,h:26}, keys={}, gameStarted=false;
+function updateMenuLevel(){
+ let v=parseInt(document.getElementById('roundInput').value)||1;
+ if(v<1)v=1; if(v>2000)v=2000;
+ document.getElementById('menuLevelShow').innerText='LEVEL: '+v+' / 2000';
+ selectedRound=v;
 }
-function spawn(){if(!gameRunning)return;let x=Math.random()*260;let d=document.createElement('div');d.className='enemy';d.style.left=x+'px';d.style.top='-90px';d.style.background=['blue','yellow','lime','orange','cyan'][Math.floor(Math.random()*5)];document.getElementById('gameBox').appendChild(d);enemies.push({x:x,y:-90,el:d});setTimeout(spawn,Math.max(300,1200-score*4));}
-function gameOver(){gameRunning=false;document.getElementById('startScreen').style.display='flex';document.getElementById('startScreen').innerHTML='<h1 style=color:white>Game Over</h1><p style=color:white>Score: '+score+'</p><button class=btn onclick=startGame()>RESTART</button>';}
+function setLevel(v){ document.getElementById('roundInput').value=v; updateMenuLevel(); }
+const carSelectDiv=document.getElementById('carSelect');
+carList.forEach((c,i)=>{let d=document.createElement('div');d.className='car-dot'+(i==0?' active':'');d.style.background=c.col;d.onclick=()=>{selectedCar=i;document.querySelectorAll('.car-dot').forEach(x=>x.classList.remove('active'));d.classList.add('active');};carSelectDiv.appendChild(d);});
+const cityGrid=document.getElementById('cityGrid');
+cities.forEach((ct,i)=>{let b=document.createElement('button');b.className='city-btn'+(i==0?' active':'');b.innerText=ct.name;b.onclick=()=>{selectedCity=i;document.querySelectorAll('.city-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');};cityGrid.appendChild(b);});
+function drawRealCar(x,y,w,h,col,isPlayer){
+ ctx.fillStyle='rgba(0,0,0,0.7)'; ctx.fillRect(x+4,y+4,w,h);
+ ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect(x,y,w,h,8); ctx.fill();
+ ctx.fillStyle='#111'; ctx.fillRect(x+5,y+15,w-10,30);
+ ctx.fillStyle='#7dd3ff'; ctx.fillRect(x+7,y+18,w-14,9);
+ ctx.fillStyle=isPlayer?'#ffeb3b':'#ff2222'; ctx.fillRect(x+4,y+h-7,10,5); ctx.fillRect(x+w-14,y+h-7,10,5);
+ ctx.fillStyle='#000'; ctx.fillRect(x-3,y+10,5,12); ctx.fillRect(x+w-2,y+10,5,12);
+}
+function drawCityRoad(id){
+ let city=cities[id];
+ ctx.fillStyle=city.bg; ctx.fillRect(0,0,700,750);
+ ctx.fillStyle=city.side1; ctx.fillRect(0,0,50,750); ctx.fillRect(650,0,50,750);
+ ctx.fillStyle='#222'; ctx.fillRect(50,0,600,750);
+ ctx.fillStyle=city.side2; ctx.fillRect(50,0,6,750); ctx.fillRect(644,0,6,750);
+ ctx.fillStyle='#fff'; for(let i=0;i<750;i+=45){ ctx.fillRect(346,i+(score*6)%45,8,28); }
+ ctx.fillStyle='rgba(255,255,255,0.2)'; for(let i=0;i<750;i+=45){ ctx.fillRect(185,i+(score*6)%45,2,10); ctx.fillRect(515,i+(score*6)%45,2,10); }
+ ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.font='bold 20px Arial'; ctx.save(); ctx.translate(25,375); ctx.rotate(-Math.PI/2); ctx.fillText(city.name,0,0); ctx.restore();
+ ctx.save(); ctx.translate(675,375); ctx.rotate(Math.PI/2); ctx.fillText(city.name,0,0); ctx.restore();
+}
+function startGame(){ selectedRound=parseInt(document.getElementById('roundInput').value)||1; speed=8+(selectedRound*0.1); document.getElementById('menu').style.display='none'; document.getElementById('controls').style.display='flex'; gameStarted=true; loop(); }
+function nextLevel(){ document.getElementById('levelBox').style.display='none'; selectedRound++; selectedCity=(selectedCity+1)%cities.length; score=0; battery=100; hits=0; speed+=0.6; traffic=[]; document.getElementById('controls').style.display='flex'; gameStarted=true; loop(); }
+function showLevelPermission(){ 
+ gameStarted=false; 
+ document.getElementById('controls').style.display='none';
+ document.getElementById('levelTitle').innerText='LEVEL '+selectedRound+' COMPLETE!'; 
+ document.getElementById('cityComplete').innerText=cities[selectedCity].name+' -> Next: '+cities[(selectedCity+1)%cities.length].name; 
+ document.getElementById('levelShowBig').innerText='LEVEL '+selectedRound+' -> '+(selectedRound+1);
+ document.getElementById('levelBox').style.display='flex'; 
+}
+function loop(){
+ if(!gameStarted) return;
+ drawCityRoad(selectedCity);
+ ctx.fillStyle='#00ff66'; ctx.beginPath(); ctx.arc(boost.x+13,boost.y+13,12,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#000'; ctx.font='bold 12px Arial'; ctx.fillText('⚡',boost.x+6,boost.y+17);
+ boost.y+=speed+4; if(boost.y>800){boost.y=-800;boost.x=60+Math.random()*500;}
+ if(traffic.length < 9 && Math.random() < 0.12){
+  let lanes=[75, 195, 326, 445, 570];
+  let lane = lanes[Math.floor(Math.random()*5)];
+  let canSpawn=true;
+  for(let c of traffic){ if(Math.abs(c.x-lane)<42 && c.y<320) canSpawn=false; }
+  if(canSpawn){ traffic.push({x:lane, y:-140, w:48, h:88, col:carList[Math.floor(Math.random()*carList.length)].col}); }
+ }
+ for(let car of traffic){ car.y+=speed; drawRealCar(car.x,car.y,car.w,car.h,car.col,false); }
+ traffic=traffic.filter(c=>c.y<850);
+ if(keys['ArrowLeft'] || keys['left']) player.x=Math.max(58,player.x-10);
+ if(keys['ArrowRight'] || keys['right']) player.x=Math.min(594,player.x+10);
+ if(keys['ArrowUp'] || keys['up']) player.y=Math.max(50,player.y-10);
+ if(keys['ArrowDown'] || keys['down']) player.y=Math.min(650,player.y+10);
+ drawRealCar(player.x,player.y,player.w,player.h,carList[selectedCar].col,true);
+ for(let car of traffic){
+  if(player.x < car.x+car.w && player.x+player.w > car.x && player.y < car.y+car.h && player.y+player.h > car.y){
+   hits++; battery-=30; car.y=900;
+   if(hits>=maxHits){ alert('GAME OVER! Level:'+selectedRound); location.reload(); return; }
+  }
+ }
+ if(player.x < boost.x+24 && player.x+48 > boost.x && player.y < boost.y+24 && player.y+88 > boost.y){ battery+=20; if(battery>100)battery=100; boost.y=-800; if(hits>0)hits--; }
+ battery-=0.022; if(battery<0){ alert('BATTERY OVER!'); location.reload(); return; }
+ document.getElementById('batTop').innerText='BAT:'+battery.toFixed(0)+'%';
+ document.getElementById('hitTop').innerText='HITS:'+hits+'/'+maxHits;
+ document.getElementById('scoreTop').innerText='SCORE:'+score+'/'+targetScore;
+ document.getElementById('levelTop').innerText='LVL:'+selectedRound+'/2000';
+ document.getElementById('cityTop').innerText=cities[selectedCity].name;
+ score++;
+ if(score>=targetScore){ if(selectedRound>=2000){alert('WIN 2000!');location.reload();return;} showLevelPermission(); return; }
+ requestAnimationFrame(loop);
+}
+window.addEventListener('keydown',e=>{keys[e.key]=true;});
+window.addEventListener('keyup',e=>keys[e.key]=false);
+function bindBtn(id,key){
+ let b=document.getElementById(id);
+ b.addEventListener('touchstart',e=>{e.preventDefault();keys[key]=true},{passive:false});
+ b.addEventListener('touchend',e=>{e.preventDefault();keys[key]=false},{passive:false});
+ b.addEventListener('mousedown',()=>keys[key]=true);
+ b.addEventListener('mouseup',()=>keys[key]=false);
+ b.addEventListener('mouseleave',()=>keys[key]=false);
+}
+bindBtn('leftBtn','left');bindBtn('rightBtn','right');bindBtn('upBtn','up');bindBtn('downBtn','down');
+updateMenuLevel();
 </script>
 </body>
 </html>
